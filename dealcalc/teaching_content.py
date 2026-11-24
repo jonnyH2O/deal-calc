@@ -35,6 +35,10 @@ DEFINITIONS = {
 # The note shown in comparison mode (R13). To be written (M8).
 CAP_RATE_NOTE = ""
 
+# Shown in comparison mode instead of the deltas when a property has input errors (R12). {properties} becomes
+# "Property A", "Property B", or "Property A and Property B".
+DELTAS_NEED_FIXING = "Fix the inputs for {properties} to see the deltas."
+
 # The sample deals, as typed inputs (R5, R9). The numbers come from the SRS.
 SAMPLE_DEALS = {
     "A": {"price": "1,200,000", "monthly_rent": "14,400", "vacancy_pct": "5", "operating_costs": "62,000"},
