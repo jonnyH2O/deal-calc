@@ -1,0 +1,2 @@
+# The Deal Calculator uses only the Python standard library (Python 3.11 or later).
+# There is nothing to install, so `pip install -r requirements.txt` does nothing.

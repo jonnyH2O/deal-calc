@@ -1,0 +1,19 @@
+/* Calculator Page styles. Owner: Ben Horrisberger (Project Plan M11, M12). Skeleton: Jonny Heinrich.
+   With explanations hidden, both properties must fit on a 1280 × 720 screen without scrolling (R16). */
+
+body {
+  font-family: system-ui, sans-serif;
+  margin: 0 auto;
+  max-width: 1200px;
+  padding: 16px;
+  color: #1f2933;
+  background: #ffffff;
+}
+
+.explanation {
+  color: #4b5563;
+}
+
+body.explanations-hidden .explanation {
+  display: none;
+}

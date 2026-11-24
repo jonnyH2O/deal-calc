@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<!--
+  Calculator Page: shows the calculator in the browser and sends every input change to the Page Host.
+  Owner: Ben Horrisberger (Project Plan M11, M12). Skeleton: Jonny Heinrich.
+  Design: SDS Section 4.7 and Figure 3. Requirements: R6 to R13, R15, R16.
+  The page does no math and gets its wording from GET /text.
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Deal Calculator</title>
+  <link rel="stylesheet" href="/page.css">
+</head>
+<body>
+  <header>
+    <h1>Deal Calculator</h1>
+    <p id="page-purpose"></p>
+    <!-- mode switch (R11), hide/show explanations (R10), and "try a sample deal" (R9) go here -->
+  </header>
+
+  <main>
+    <section id="inputs">
+      <h2>Inputs</h2>
+      <p class="explanation" id="inputs-purpose"></p>
+      <!-- the four inputs for Property A, and Property B in comparison mode (R1, R7) -->
+    </section>
+
+    <section id="results">
+      <h2>Results</h2>
+      <p class="explanation" id="results-purpose"></p>
+      <!-- GPR, EGI, NOI, and cap rate with definitions and worked formulas (R8) -->
+    </section>
+
+    <section id="comparison" hidden>
+      <h2>Comparison</h2>
+      <p class="explanation" id="comparison-purpose"></p>
+      <!-- deltas (R12) and the cap rate note (R13) -->
+    </section>
+  </main>
+
+  <p id="connection-problem" hidden></p>
+  <script src="/page.js"></script>
+</body>
+</html>
