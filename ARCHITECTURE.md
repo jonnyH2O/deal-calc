@@ -108,14 +108,22 @@ older answer never replaces a newer one.
 ## Rules for changing the code
 
 1. **Formulas go only in Deal Math.** Every formula has known-answer tests, including the sample deal (R5).
-2. **Words for members go only in Teaching Content.** Every term they use must be defined on the page (R17).
+2. **Words for members go only in Teaching Content.** The one exception is the Input Checker's error and warning
+   messages, which sit next to the limits they describe (SDS 4.2). Every term they use must be defined on the page
+   (R17).
 3. **The page does no math.** It shows what the Deal Evaluator sends.
 4. **Standard library only.** A third-party package needs the instructor's written approval first.
 5. **Follow the interfaces in the SDS.** If an interface has to change, update the SDS, this file, and every module
    that uses it together.
 6. **Tests must pass before a change is merged:** `python -m unittest`. Each owner adds a test file for their
    module in `tests/`, such as `tests/test_deal_math.py`.
-7. **Every change gets a second member's review** on GitHub before it is merged.
+7. **Tests are white-box.** Write them from the code, not only from the requirements:
+   - At the top of the test file, list every branch in the module (each `if`, `elif`, loop exit, early `return`,
+     and `except`) and name the test that takes it each way.
+   - Test both sides of every comparison, such as 25 and 25.1 for "above 25".
+   - Run `python tests/line_coverage.py` and get your module to 100% of lines. It uses only the standard library.
+   - `tests/test_input_checker.py` is the example to follow.
+8. **Every change gets a second member's review** on GitHub before it is merged.
 
 ## Current state
 
@@ -123,6 +131,8 @@ This is the package skeleton (Project Plan M4). Every interface from the SDS exi
 and rules in the docstrings. Functions that are not written yet raise `NotImplementedError` with the milestone that
 will write them. Until the Deal Evaluator is written, the Page Host answers `/text` and `/evaluate` with 501 and
 skips the start-up self-check with a message, so the calculator still starts.
+
+Done so far: M4 (skeleton) and M6 (Input Checker).
 
 | Milestone | Module | Owner | Due |
 |---|---|---|---|

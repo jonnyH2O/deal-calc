@@ -59,6 +59,12 @@ problem and how to fix it.
 python -m unittest
 ```
 
+To see which lines of each module the tests never ran:
+
+```bash
+python tests/line_coverage.py
+```
+
 ## How the code is organized
 
 See [ARCHITECTURE.md](ARCHITECTURE.md) for the modules, how they fit together, and the rules for changing them.
