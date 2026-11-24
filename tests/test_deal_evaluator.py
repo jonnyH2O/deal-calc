@@ -129,6 +129,7 @@ class TestPageText(unittest.TestCase):
     def test_page_text_is_teaching_content(self):
         text = page_text()
         self.assertEqual(text["page_purpose"], teaching_content.PAGE_PURPOSE)
+        self.assertEqual(text["info_hint"], teaching_content.INFO_HINT)
         self.assertEqual(text["section_purposes"], teaching_content.SECTION_PURPOSES)
         self.assertEqual(text["definitions"], teaching_content.DEFINITIONS)
         self.assertEqual(text["cap_rate_note"], teaching_content.CAP_RATE_NOTE)

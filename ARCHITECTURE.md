@@ -20,7 +20,7 @@ comparison mode, finds the deltas. The page only displays what the program sends
 
 | Component | File | What it does | Owner | SDS |
 |---|---|---|---|---|
-| Calculator Page | `dealcalc/static/page.html`, `page.css`, `page.js` | The page in the browser: inputs, results, worked formulas, messages, explanations, deltas, mode switch, hide/show explanations, and "try a sample deal". **No math.** | Ben | 4.7 |
+| Calculator Page | `dealcalc/static/page.html`, `page.css`, `page.js` | The page in the browser: inputs, results, worked formulas, messages, explanations, deltas, mode switch, an info button that opens each section's and item's explanation, and "try a sample deal". **No math.** | Ben | 4.7 |
 | Page Host | `dealcalc/page_host.py` | Starts the calculator, checks it works, prints the status report (R14), sends the page files, and answers the page's requests. | Ben | 4.6 |
 | Deal Evaluator | `dealcalc/deal_evaluator.py` | Turns one or two properties' typed inputs into everything the page shows: errors, warnings, results, worked formulas, and deltas. | Alejandro | 4.5 |
 | Input Checker | `dealcalc/input_checker.py` | Reads typed text as numbers, checks each input's valid range (R2), and finds unusual values (R3). | Jonny | 4.2 |

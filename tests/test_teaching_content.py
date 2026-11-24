@@ -34,7 +34,8 @@ def sentences(paragraph):
 
 def all_text():
     """Every piece of member-facing text in Teaching Content."""
-    pieces = [text.PAGE_PURPOSE, text.CAP_RATE_NOTE, text.DELTAS_NEED_FIXING, *text.SECTION_PURPOSES.values()]
+    pieces = [text.PAGE_PURPOSE, text.INFO_HINT, text.CAP_RATE_NOTE, text.DELTAS_NEED_FIXING,
+              *text.SECTION_PURPOSES.values()]
     for entry in text.DEFINITIONS.values():
         pieces.extend(entry.values())
     return pieces
@@ -44,6 +45,10 @@ class TestText(unittest.TestCase):
 
     def test_T1_page_purpose_is_one_sentence(self):
         self.assertEqual(sentences(text.PAGE_PURPOSE), 1)
+
+    def test_T1_info_hint_has_one_place_for_the_icon(self):
+        self.assertEqual(text.INFO_HINT.count("{icon}"), 1)
+        self.assertEqual(sentences(text.INFO_HINT), 1)
 
     def test_T2_section_purposes(self):
         self.assertEqual(set(text.SECTION_PURPOSES), {"inputs", "results", "comparison"})

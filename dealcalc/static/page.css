@@ -1,5 +1,5 @@
 /* Calculator Page styles. Owner: Ben Horrisberger (Project Plan M11, M12). Skeleton: Jonny Heinrich.
-   With explanations hidden, both properties must fit on a 1280 × 720 screen without scrolling (R16). */
+   With every explanation closed, both properties must fit on a 1280 × 720 screen without scrolling (R16). */
 
 :root {
   --ink: #1f2933;
@@ -11,6 +11,7 @@
   --error: #b42318;
   --warning: #8a5a00;
   --warning-soft: #fff7e0;
+  --info-on: #facc15;
 }
 
 * {
@@ -187,14 +188,14 @@ thead th {
 tbody th,
 tbody td {
   border-top: 1px solid var(--line);
-  padding: 5px 10px;
+  padding: 4px 10px;
   vertical-align: top;
   text-align: left;
 }
 
 .section-row th {
   border-top: none;
-  padding-top: 10px;
+  padding-top: 8px;
   padding-bottom: 4px;
 }
 
@@ -202,10 +203,66 @@ tbody td {
   font-weight: 600;
 }
 
+/* ---------- explanations: hidden until the item's info button is pressed ---------- */
+
 .explanation {
-  color: var(--muted);
+  display: none;
+  color: var(--ink);
   font-size: 14px;
   font-weight: normal;
+  text-transform: none;
+  letter-spacing: normal;
+  text-align: left;
+  white-space: normal;
+  background: var(--warning-soft);
+  border-left: 4px solid var(--info-on);
+  border-radius: 0 6px 6px 0;
+  padding: 4px 8px;
+  margin-top: 4px;
+}
+
+.explainable.open .explanation {
+  display: block;
+}
+
+/* the info button: a small round "i" to the right of a section or item name; yellow while its explanation shows */
+.info,
+.info-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  margin-left: 6px;
+  border: 1.5px solid var(--muted);
+  border-radius: 50%;
+  background: #ffffff;
+  color: var(--muted);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 14px;
+  font-weight: 700;
+  font-style: italic;
+  line-height: 1;
+  vertical-align: middle;
+  text-transform: none;
+}
+
+.info:hover {
+  background: var(--soft);
+}
+
+.info[aria-expanded="true"] {
+  background: var(--info-on);
+  border-color: #a16207;
+  color: #422006;
+}
+
+.info-icon {
+  margin: 0 2px;
+  width: 19px;
+  height: 19px;
+  font-size: 12px;
 }
 
 td.value {
@@ -248,16 +305,12 @@ input[aria-invalid="true"] {
 }
 
 .formula {
-  display: block;
+  text-align: right;
 }
 
-/* ---------- modes and the hide/show explanations control ---------- */
+/* ---------- modes ---------- */
 
 body:not(.comparison) .comparison-only {
-  display: none;
-}
-
-body.explanations-hidden .explanation {
   display: none;
 }
 

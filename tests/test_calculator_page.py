@@ -32,13 +32,20 @@ class TestCalculatorPage(unittest.TestCase):
             with self.subTest(id=element_id):
                 self.assertIn(f'id="{element_id}"', HTML)
 
+    def test_every_section_info_button_explains_an_element_on_the_page(self):
+        targets = re.findall(r'data-explains="([^"]+)"', HTML)
+        self.assertEqual(sorted(targets), ["comparison", "inputs-section", "results-section"])
+        for target in targets:
+            with self.subTest(target=target):
+                self.assertIn(f'id="{target}"', HTML)
+
     def test_every_section_purpose_has_a_place(self):
         for section in ("inputs", "results", "comparison"):
             with self.subTest(section=section):
                 self.assertIn(f'id="{section}-purpose"', HTML)
 
     def test_page_js_has_the_sds_functions(self):
-        for name in ("loadText", "requestEvaluation", "render", "switchMode", "toggleExplanations", "fillSample"):
+        for name in ("loadText", "requestEvaluation", "render", "switchMode", "toggleExplanation", "fillSample"):
             with self.subTest(function=name):
                 self.assertRegex(JS, rf"(async )?function {name}\(")
 

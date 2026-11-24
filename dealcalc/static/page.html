@@ -4,6 +4,7 @@
   Owner: Ben Horrisberger (Project Plan M11, M12). Skeleton: Jonny Heinrich.
   Design: SDS Section 4.7 and Figure 3. Requirements: R6 to R13, R15, R16.
   The page does no math. Its text comes from GET /text, and the rows are built by page.js.
+  Explanations start hidden. Each section and item has an info button that shows its own explanation.
 -->
 <html lang="en">
 <head>
@@ -17,21 +18,24 @@
     <div class="title">
       <h1>Deal Calculator</h1>
       <p id="page-purpose"></p>
+      <p id="info-hint"></p>
     </div>
     <div class="controls">
       <div class="mode-switch" role="group" aria-label="Mode">
         <button type="button" id="mode-single" aria-pressed="true">Single property</button>
         <button type="button" id="mode-comparison" aria-pressed="false">Compare two</button>
       </div>
-      <button type="button" id="toggle-explanations" aria-pressed="false">Hide explanations</button>
       <button type="button" id="sample-deal">Try a sample deal</button>
     </div>
   </header>
 
   <p id="connection-problem" class="problem" role="alert" hidden></p>
 
-  <section id="comparison" class="comparison-only" aria-labelledby="comparison-heading">
-    <h2 id="comparison-heading">Comparison</h2>
+  <section id="comparison" class="comparison-only explainable" aria-labelledby="comparison-heading">
+    <h2 id="comparison-heading">Comparison
+      <button type="button" class="info" data-explains="comparison" aria-expanded="false"
+              aria-controls="comparison-purpose" aria-label="Explain the Comparison section">i</button>
+    </h2>
     <p class="explanation" id="comparison-purpose"></p>
     <p class="note" id="cap-rate-note"></p>
     <p class="problem" id="deltas-message" hidden></p>
@@ -47,17 +51,23 @@
       </tr>
     </thead>
     <tbody id="inputs">
-      <tr class="section-row">
+      <tr class="section-row explainable" id="inputs-section">
         <th colspan="4" scope="colgroup">
-          <h2>Inputs</h2>
+          <h2>Inputs
+            <button type="button" class="info" data-explains="inputs-section" aria-expanded="false"
+                    aria-controls="inputs-purpose" aria-label="Explain the Inputs section">i</button>
+          </h2>
           <p class="explanation" id="inputs-purpose"></p>
         </th>
       </tr>
     </tbody>
     <tbody id="results">
-      <tr class="section-row">
+      <tr class="section-row explainable" id="results-section">
         <th colspan="4" scope="colgroup">
-          <h2>Results</h2>
+          <h2>Results
+            <button type="button" class="info" data-explains="results-section" aria-expanded="false"
+                    aria-controls="results-purpose" aria-label="Explain the Results section">i</button>
+          </h2>
           <p class="explanation" id="results-purpose"></p>
         </th>
       </tr>

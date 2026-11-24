@@ -16,6 +16,9 @@ from dealcalc.number_format import MINUS, format_money, format_percent
 PAGE_PURPOSE = ("Enter a property listing's numbers to see its net operating income (NOI) and cap rate, with every "
                 "step explained.")
 
+# Shown under the page purpose. The page puts its info button icon where {icon} is.
+INFO_HINT = "Press {icon} next to any section or item to see an explanation."
+
 # A sentence or two at the start of each section saying what it is for (R6).
 SECTION_PURPOSES = {
     "inputs": ("These are the four numbers you need from a property listing. Each one says where to find it on the "

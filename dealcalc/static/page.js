@@ -17,7 +17,6 @@ const CANNOT_REACH = "This page can't reach the calculator. Start it with python
 
 const state = {
   mode: "single",            // "single" or "comparison" (R11)
-  explanationsShown: true,   // explanations are shown when the page first opens (R10)
   inputs: { A: {}, B: {} },  // typed text, keyed by field name
   latestSeq: 0,              // number of the newest POST /evaluate sent
 };
@@ -41,6 +40,7 @@ async function loadText() {
     return;
   }
   byId("page-purpose").textContent = pageText.page_purpose;
+  showInfoHint(pageText.info_hint);
   for (const section of ["inputs", "results", "comparison"]) {
     byId(`${section}-purpose`).textContent = pageText.section_purposes[section];
   }
@@ -48,6 +48,17 @@ async function loadText() {
   buildRows();
   connectControls();
   requestEvaluation();  // shows a hint under each empty input
+}
+
+// "Press {icon} next to any ..." with a picture of the info button where {icon} is.
+function showInfoHint(hint) {
+  const [before, after] = hint.split("{icon}");
+  const icon = document.createElement("span");
+  icon.className = "info-icon";
+  icon.textContent = "i";
+  icon.setAttribute("role", "img");
+  icon.setAttribute("aria-label", "the info button");
+  byId("info-hint").replaceChildren(before, icon, after);
 }
 
 // One row per input and per result, with a cell for each property and one for the delta.
@@ -94,10 +105,12 @@ function buildRows() {
   }
 }
 
-// The left-hand cell: the item's name, its definition, and, for inputs, where to find it on a listing.
+// The left-hand cell: the item's name and info button, its definition, and, for inputs, where to find it on a
+// listing. The row is what the info button opens, so for results it also shows the worked formulas.
 function labelRow(field, isInput) {
   const entry = pageText.definitions[field];
   const row = document.createElement("tr");
+  row.className = "explainable";
   const label = document.createElement("th");
   label.scope = "row";
   const name = document.createElement("span");
@@ -111,6 +124,7 @@ function labelRow(field, isInput) {
   } else {
     label.append(name);
   }
+  label.append(infoButton(row, entry.name));
   label.append(explanation(entry.definition));
   if (isInput) {
     label.append(explanation(`Where to find it: ${entry.where_to_find}`));
@@ -147,8 +161,12 @@ function deltaCell(field) {
 function connectControls() {
   byId("mode-single").addEventListener("click", () => switchMode("single"));
   byId("mode-comparison").addEventListener("click", () => switchMode("comparison"));
-  byId("toggle-explanations").addEventListener("click", toggleExplanations);
   byId("sample-deal").addEventListener("click", fillSample);
+  // the section info buttons are in page.html; each names the element it explains in data-explains
+  for (const button of document.querySelectorAll(".info[data-explains]")) {
+    const explainable = byId(button.dataset.explains);
+    button.addEventListener("click", () => toggleExplanation(button, explainable));
+  }
 }
 
 // ---------------------------------------------------------------- the report (Figure 3: the "Report" region)
@@ -250,13 +268,23 @@ function switchMode(mode) {
   requestEvaluation();
 }
 
-// Hide or show all explanations. Errors and warnings stay visible (R10).
-function toggleExplanations() {
-  state.explanationsShown = !state.explanationsShown;
-  document.body.classList.toggle("explanations-hidden", !state.explanationsShown);
-  const button = byId("toggle-explanations");
-  button.textContent = state.explanationsShown ? "Hide explanations" : "Show explanations";
-  button.setAttribute("aria-pressed", String(!state.explanationsShown));
+// Show or hide one section's or item's explanation. The button turns yellow while its explanation shows. Errors
+// and warnings are not explanations, so they always stay visible.
+function toggleExplanation(button, explainable) {
+  const open = explainable.classList.toggle("open");
+  button.setAttribute("aria-expanded", String(open));
+}
+
+// A round "i" button that shows and hides the explanations inside `explainable`.
+function infoButton(explainable, what) {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "info";
+  button.textContent = "i";
+  button.setAttribute("aria-expanded", "false");
+  button.setAttribute("aria-label", `Explain ${what}`);
+  button.addEventListener("click", () => toggleExplanation(button, explainable));
+  return button;
 }
 
 // Replace the inputs with SAMPLE_DEALS (A, and B in comparison mode), then call requestEvaluation() (R9).

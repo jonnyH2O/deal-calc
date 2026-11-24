@@ -71,6 +71,7 @@ def page_text() -> dict:
     """Teaching Content's purposes, definitions, cap rate note, and sample deals, for the page to show."""
     return {
         "page_purpose": teaching_content.PAGE_PURPOSE,
+        "info_hint": teaching_content.INFO_HINT,
         "section_purposes": teaching_content.SECTION_PURPOSES,
         "definitions": teaching_content.DEFINITIONS,
         "cap_rate_note": teaching_content.CAP_RATE_NOTE,
