@@ -82,8 +82,9 @@ The four inputs and four results always use these field names (`deal_math.INPUT_
 | `GET /text` | — | JSON from `deal_evaluator.page_text()` |
 | `POST /evaluate` | `{"A": raw, "B": raw or null, "seq": int}` | JSON from `deal_evaluator.evaluate(A, B)`, plus the same `seq` |
 
-Unknown paths get 404, and a body that is not valid JSON (or has the wrong shape) gets 400. Every error answer is
-`{"error": "message"}`.
+Unknown paths get 404, and a body that is not valid JSON (or has the wrong shape) gets 400. If something inside
+the calculator fails unexpectedly (a bug), the page gets 500 and the details are printed in the terminal that
+started the calculator. Every error answer is `{"error": "message"}`.
 
 The report from `evaluate()` has this shape. Results and deltas are already formatted as text.
 
@@ -127,12 +128,12 @@ older answer never replaces a newer one.
 
 ## Current state
 
-This is the package skeleton (Project Plan M4). Every interface from the SDS exists, with its parameters, returns,
-and rules in the docstrings. Functions that are not written yet raise `NotImplementedError` with the milestone that
-will write them. Until the Deal Evaluator is written, the Page Host answers `/text` and `/evaluate` with 501 and
-skips the start-up self-check with a message, so the calculator still starts.
+Every Python module is written and tested, and every line of every module runs in the tests
+(`python tests/line_coverage.py`). The Python side works end to end: `POST /evaluate` returns results, worked
+formulas, warnings, and deltas. The Calculator Page (`dealcalc/static/`) is still a skeleton with empty functions.
 
-Done so far: M4 (skeleton), M5 (Deal Math), M6 (Input Checker), M7 (Number Formatter), M8 (Teaching Content), and M9 (Deal Evaluator).
+Done so far: M4 (skeleton), M5 (Deal Math), M6 (Input Checker), M7 (Number Formatter), M8 (Teaching Content),
+M9 (Deal Evaluator), and M10 (Page Host).
 
 | Milestone | Module | Owner | Due |
 |---|---|---|---|

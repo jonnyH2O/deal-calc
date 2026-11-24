@@ -7,10 +7,9 @@ Routes (all on 127.0.0.1, so only this computer can reach them):
     GET  /, /page.css, /page.js   the Calculator Page's files
     GET  /text                    deal_evaluator.page_text() as JSON
     POST /evaluate                body {"A": raw, "B": raw or null, "seq": int}; returns evaluate(A, B) plus seq
-Unknown paths get 404, and a body that is not valid JSON gets 400 with a message.
-
-Skeleton note: while a module is still unwritten, its routes answer 501 and the start-up self-check is skipped
-with a message, so the calculator still starts.
+Unknown paths get 404, and a body that is not valid JSON gets 400 with a message. If something inside the
+calculator fails unexpectedly, the page gets 500 with a message and the details are printed in the terminal, so
+the problem can be found and fixed.
 """
 
 import argparse
@@ -18,6 +17,7 @@ import json
 import os
 import socket
 import sys
+import traceback
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -66,10 +66,10 @@ class DealRequestHandler(BaseHTTPRequestHandler):
         if self.path != "/evaluate":
             self._send_message(HTTPStatus.NOT_FOUND, f"There is no page at {self.path}.")
             return
-        length = int(self.headers.get("Content-Length", 0))
         try:
+            length = int(self.headers.get("Content-Length", 0))
             body = json.loads(self.rfile.read(length))
-        except ValueError:
+        except ValueError:  # a Content-Length that is not a number, or a body that is not JSON
             self._send_message(HTTPStatus.BAD_REQUEST, "The request body is not valid JSON.")
             return
         if not (isinstance(body, dict) and isinstance(body.get("A"), dict)
@@ -80,11 +80,14 @@ class DealRequestHandler(BaseHTTPRequestHandler):
         self._answer(lambda: {**deal_evaluator.evaluate(body["A"], body["B"]), "seq": body["seq"]})
 
     def _answer(self, make_json):
-        """Send make_json()'s result, or 501 while the module behind it is not written yet."""
+        """Send make_json()'s result as JSON, or 500 if it fails unexpectedly."""
         try:
             data = make_json()
-        except NotImplementedError as missing:
-            self._send_message(HTTPStatus.NOT_IMPLEMENTED, str(missing))
+        except Exception:  # a bug, not a member's mistake: tell the page, and print the details for a maintainer
+            traceback.print_exc()
+            self._send_message(HTTPStatus.INTERNAL_SERVER_ERROR,
+                               "The calculator hit a problem it did not expect. The details are in the terminal "
+                               "that started it.")
             return
         self._send(HTTPStatus.OK, json.dumps(data).encode("utf-8"), "application/json")
 
@@ -108,11 +111,7 @@ def check_install() -> str | None:
     if missing:
         return (f"the page files {', '.join(missing)} are missing from {STATIC_DIR}. "
                 "Download the calculator's files again and reinstall it (see the README).")
-    try:
-        problem = deal_evaluator.self_check()
-    except NotImplementedError:
-        print("Self-check skipped: the Deal Evaluator is not written yet.")
-        return None
+    problem = deal_evaluator.self_check()
     if problem:
         return f"the self-check on the sample deal failed: {problem}"
     return None
