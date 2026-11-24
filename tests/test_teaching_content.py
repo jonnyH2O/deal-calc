@@ -98,6 +98,18 @@ class TestText(unittest.TestCase):
         self.assertEqual(deal_a, Deal(price=1_200_000, monthly_rent=14_400, vacancy_pct=5, operating_costs=62_000))
         self.assertEqual(deal_b, Deal(price=1_350_000, monthly_rent=15_600, vacancy_pct=7, operating_costs=70_000))
 
+    def test_T6_more_sample_deals_are_valid_and_different(self):
+        self.assertGreaterEqual(len(text.MORE_SAMPLE_DEALS), 2)
+        every_pair = [text.SAMPLE_DEALS, *text.MORE_SAMPLE_DEALS]
+        for number, pair in enumerate(text.MORE_SAMPLE_DEALS, start=2):
+            for side in ("A", "B"):
+                with self.subTest(example=number, property=side):
+                    self.assertEqual(set(pair), {"A", "B"})
+                    deal, errors = check_inputs(pair[side])
+                    self.assertEqual(errors, {})  # every example passes the Input Checker
+                    self.assertGreater(compute(deal).noi, 0)  # and makes money, as a listing would
+        self.assertEqual(len({str(pair) for pair in every_pair}), len(every_pair))  # no two are the same
+
 
 class TestWorkedFormulas(unittest.TestCase):
 

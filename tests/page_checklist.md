@@ -29,7 +29,8 @@ window to 1280 × 720 for check 9.
 | # | Do this | Check that | Covers |
 |---|---|---|---|
 | 8 | Press **Compare two**. | Property A keeps its numbers. Property B and Delta columns appear, with the Comparison section's purpose and the cap rate note. The note above the table says to fix the inputs for Property B. | R6, R11, R12, R13, switchMode("comparison") |
-| 9 | Close every explanation, then press **Try a sample deal**. | Property B is $1,350,000 / 15,600 / 7 / 70,000. Deltas include NOI +$1,936 and cap rate −0.80 points. With every explanation closed, everything fits in the 1280 × 720 window without scrolling. | R9, R12, R16 |
+| 9 | Close every explanation, then press **Try a sample deal**. | Both properties change to the next example (A: $850,000 / 9,600 / 4 / 41,000; B: $920,000 / 10,400 / 6 / 46,500), and every delta shows, such as NOI +$1,220. With every explanation closed, everything fits in the 1280 × 720 window without scrolling. | R9, R12, R16 |
+| 9a | Press **Try a sample deal** three more times, then once more. | Each press loads a different example; the third has a 28% vacancy rate and shows its warning. The press after that goes back to the first sample ($1,200,000 and $1,350,000), with NOI delta +$1,936 and cap rate delta −0.80 points. | R3, R9, R12, fillSample() |
 | 10 | Type `abc` for Property B's price. | The deltas change to "—", and the note says to fix Property B. The table does not change width. | R12 |
 | 11 | Press **Single property**, then **Compare two** again. | Property A's numbers were kept both ways. | R11, switchMode("single") |
 

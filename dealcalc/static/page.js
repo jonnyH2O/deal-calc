@@ -19,6 +19,7 @@ const state = {
   mode: "single",            // "single" or "comparison" (R11)
   inputs: { A: {}, B: {} },  // typed text, keyed by field name
   latestSeq: 0,              // number of the newest POST /evaluate sent
+  nextSample: 0,             // which sample deal "try a sample deal" loads next; the first is the SRS sample (R5)
 };
 let pageText = null;         // the answer to GET /text
 
@@ -287,12 +288,15 @@ function infoButton(explainable, what) {
   return button;
 }
 
-// Replace the inputs with SAMPLE_DEALS (A, and B in comparison mode), then call requestEvaluation() (R9).
+// Replace the inputs with the next sample deal (A, and B in comparison mode), then call requestEvaluation() (R9).
+// The samples take turns: the SRS sample first, then each other example, then back to the first.
 function fillSample() {
+  const sample = pageText.sample_deals[state.nextSample];
+  state.nextSample = (state.nextSample + 1) % pageText.sample_deals.length;
   const properties = state.mode === "comparison" ? PROPERTIES : ["A"];
   for (const property of properties) {
     for (const field of INPUT_FIELDS) {
-      const text = pageText.sample_deals[property][field];
+      const text = sample[property][field];
       state.inputs[property][field] = text;
       byId(`input-${property}-${field}`).value = text;
     }

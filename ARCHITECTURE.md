@@ -72,7 +72,8 @@ The four inputs and four results always use these field names (`deal_math.INPUT_
 - **The formulas (R4):** `gpr = monthly_rent × 12`, `egi = gpr × (1 − vacancy_pct ÷ 100)`,
   `noi = egi − operating_costs`, `cap_rate_pct = noi ÷ price × 100`.
 - **The sample deal (R5)** must give GPR $172,800, EGI $164,160, NOI $102,160, and cap rate 8.51%. Its inputs are
-  in `teaching_content.SAMPLE_DEALS`.
+  in `teaching_content.SAMPLE_DEALS`. "Try a sample deal" starts with it, then takes turns with the made-up
+  examples in `teaching_content.MORE_SAMPLE_DEALS`.
 
 ## The page's requests
 

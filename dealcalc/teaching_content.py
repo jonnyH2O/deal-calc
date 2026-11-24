@@ -91,6 +91,20 @@ SAMPLE_DEALS = {
     "B": {"price": "1,350,000", "monthly_rent": "15,600", "vacancy_pct": "7", "operating_costs": "70,000"},
 }
 
+# More made-up examples for "try a sample deal". Each press loads the next one, starting with SAMPLE_DEALS, so
+# members see different listings. In each pair, B is a similar building to compare with A. They are realistic
+# but not real listings, and the fourth has a high vacancy rate so members can see a warning.
+MORE_SAMPLE_DEALS = [
+    {"A": {"price": "850,000", "monthly_rent": "9,600", "vacancy_pct": "4", "operating_costs": "41,000"},
+     "B": {"price": "920,000", "monthly_rent": "10,400", "vacancy_pct": "6", "operating_costs": "46,500"}},
+    {"A": {"price": "2,400,000", "monthly_rent": "26,400", "vacancy_pct": "6", "operating_costs": "118,000"},
+     "B": {"price": "2,150,000", "monthly_rent": "24,000", "vacancy_pct": "9", "operating_costs": "112,000"}},
+    {"A": {"price": "640,000", "monthly_rent": "8,800", "vacancy_pct": "28", "operating_costs": "39,000"},
+     "B": {"price": "700,000", "monthly_rent": "8,800", "vacancy_pct": "8", "operating_costs": "44,000"}},
+    {"A": {"price": "3,100,000", "monthly_rent": "30,000", "vacancy_pct": "5", "operating_costs": "155,000"},
+     "B": {"price": "2,900,000", "monthly_rent": "29,500", "vacancy_pct": "5", "operating_costs": "162,000"}},
+]
+
 
 def worked_formulas(deal: Deal, results: Results) -> dict[str, str]:
     """Each result's formula with the member's numbers, keyed by result field (R8).

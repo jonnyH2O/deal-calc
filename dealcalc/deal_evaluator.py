@@ -68,14 +68,18 @@ def evaluate(raw_a: dict[str, str], raw_b: dict[str, str] | None) -> dict:
 
 
 def page_text() -> dict:
-    """Teaching Content's purposes, definitions, cap rate note, and sample deals, for the page to show."""
+    """Teaching Content's purposes, definitions, cap rate note, and sample deals, for the page to show.
+
+    sample_deals is a list of {"A": raw, "B": raw} pairs, starting with the SRS sample (R5, R9).
+    """
     return {
         "page_purpose": teaching_content.PAGE_PURPOSE,
         "info_hint": teaching_content.INFO_HINT,
         "section_purposes": teaching_content.SECTION_PURPOSES,
         "definitions": teaching_content.DEFINITIONS,
         "cap_rate_note": teaching_content.CAP_RATE_NOTE,
-        "sample_deals": teaching_content.SAMPLE_DEALS,
+        # the SRS sample first, then the other examples; "try a sample deal" loads the next one each time
+        "sample_deals": [teaching_content.SAMPLE_DEALS, *teaching_content.MORE_SAMPLE_DEALS],
     }
 
 

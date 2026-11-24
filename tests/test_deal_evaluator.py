@@ -133,7 +133,8 @@ class TestPageText(unittest.TestCase):
         self.assertEqual(text["section_purposes"], teaching_content.SECTION_PURPOSES)
         self.assertEqual(text["definitions"], teaching_content.DEFINITIONS)
         self.assertEqual(text["cap_rate_note"], teaching_content.CAP_RATE_NOTE)
-        self.assertEqual(text["sample_deals"], teaching_content.SAMPLE_DEALS)
+        self.assertEqual(text["sample_deals"], [teaching_content.SAMPLE_DEALS, *teaching_content.MORE_SAMPLE_DEALS])
+        self.assertEqual(text["sample_deals"][0], teaching_content.SAMPLE_DEALS)  # the first press gives R5's
         json.dumps(text)
 
 
