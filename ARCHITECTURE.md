@@ -132,7 +132,7 @@ and rules in the docstrings. Functions that are not written yet raise `NotImplem
 will write them. Until the Deal Evaluator is written, the Page Host answers `/text` and `/evaluate` with 501 and
 skips the start-up self-check with a message, so the calculator still starts.
 
-Done so far: M4 (skeleton), M5 (Deal Math), M6 (Input Checker), M7 (Number Formatter), and M9 (Deal Evaluator).
+Done so far: M4 (skeleton), M5 (Deal Math), M6 (Input Checker), M7 (Number Formatter), M8 (Teaching Content), and M9 (Deal Evaluator).
 
 | Milestone | Module | Owner | Due |
 |---|---|---|---|
