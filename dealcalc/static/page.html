@@ -3,7 +3,7 @@
   Calculator Page: shows the calculator in the browser and sends every input change to the Page Host.
   Owner: Ben Horrisberger (Project Plan M11, M12). Skeleton: Jonny Heinrich.
   Design: SDS Section 4.7 and Figure 3. Requirements: R6 to R13, R15, R16.
-  The page does no math and gets its wording from GET /text.
+  The page does no math. Its text comes from GET /text, and the rows are built by page.js.
 -->
 <html lang="en">
 <head>
@@ -13,33 +13,57 @@
   <link rel="stylesheet" href="/page.css">
 </head>
 <body>
-  <header>
-    <h1>Deal Calculator</h1>
-    <p id="page-purpose"></p>
-    <!-- mode switch (R11), hide/show explanations (R10), and "try a sample deal" (R9) go here -->
+  <header class="top">
+    <div class="title">
+      <h1>Deal Calculator</h1>
+      <p id="page-purpose"></p>
+    </div>
+    <div class="controls">
+      <div class="mode-switch" role="group" aria-label="Mode">
+        <button type="button" id="mode-single" aria-pressed="true">Single property</button>
+        <button type="button" id="mode-comparison" aria-pressed="false">Compare two</button>
+      </div>
+      <button type="button" id="toggle-explanations" aria-pressed="false">Hide explanations</button>
+      <button type="button" id="sample-deal">Try a sample deal</button>
+    </div>
   </header>
 
-  <main>
-    <section id="inputs">
-      <h2>Inputs</h2>
-      <p class="explanation" id="inputs-purpose"></p>
-      <!-- the four inputs for Property A, and Property B in comparison mode (R1, R7) -->
-    </section>
+  <p id="connection-problem" class="problem" role="alert" hidden></p>
 
-    <section id="results">
-      <h2>Results</h2>
-      <p class="explanation" id="results-purpose"></p>
-      <!-- GPR, EGI, NOI, and cap rate with definitions and worked formulas (R8) -->
-    </section>
+  <section id="comparison" class="comparison-only" aria-labelledby="comparison-heading">
+    <h2 id="comparison-heading">Comparison</h2>
+    <p class="explanation" id="comparison-purpose"></p>
+    <p class="note" id="cap-rate-note"></p>
+    <p class="problem" id="deltas-message" hidden></p>
+  </section>
 
-    <section id="comparison" hidden>
-      <h2>Comparison</h2>
-      <p class="explanation" id="comparison-purpose"></p>
-      <!-- deltas (R12) and the cap rate note (R13) -->
-    </section>
-  </main>
+  <table id="calculator">
+    <thead>
+      <tr>
+        <th scope="col"><span class="visually-hidden">Item</span></th>
+        <th scope="col">Property A</th>
+        <th scope="col" class="comparison-only">Property B</th>
+        <th scope="col" class="comparison-only">Delta (B &minus; A)</th>
+      </tr>
+    </thead>
+    <tbody id="inputs">
+      <tr class="section-row">
+        <th colspan="4" scope="colgroup">
+          <h2>Inputs</h2>
+          <p class="explanation" id="inputs-purpose"></p>
+        </th>
+      </tr>
+    </tbody>
+    <tbody id="results">
+      <tr class="section-row">
+        <th colspan="4" scope="colgroup">
+          <h2>Results</h2>
+          <p class="explanation" id="results-purpose"></p>
+        </th>
+      </tr>
+    </tbody>
+  </table>
 
-  <p id="connection-problem" hidden></p>
   <script src="/page.js"></script>
 </body>
 </html>

@@ -1,19 +1,270 @@
 /* Calculator Page styles. Owner: Ben Horrisberger (Project Plan M11, M12). Skeleton: Jonny Heinrich.
    With explanations hidden, both properties must fit on a 1280 × 720 screen without scrolling (R16). */
 
+:root {
+  --ink: #1f2933;
+  --muted: #52606d;
+  --line: #d5d9de;
+  --soft: #f3f4f6;
+  --accent: #1d4ed8;
+  --accent-soft: #e8eefc;
+  --error: #b42318;
+  --warning: #8a5a00;
+  --warning-soft: #fff7e0;
+}
+
+* {
+  box-sizing: border-box;
+}
+
 body {
-  font-family: system-ui, sans-serif;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 16px;
+  line-height: 1.4;
   margin: 0 auto;
-  max-width: 1200px;
-  padding: 16px;
-  color: #1f2933;
+  max-width: 1240px;
+  padding: 12px 20px;
+  color: var(--ink);
   background: #ffffff;
 }
 
+h1 {
+  font-size: 26px;
+  margin: 0;
+}
+
+h2 {
+  font-size: 15px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  margin: 0;
+}
+
+p {
+  margin: 2px 0 0;
+}
+
+/* ---------- top of the page ---------- */
+
+.top {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px 24px;
+  margin-bottom: 12px;
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+button {
+  font: inherit;
+  font-size: 15px;
+  padding: 7px 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #ffffff;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+button:hover {
+  background: var(--soft);
+}
+
+button:focus-visible,
+input:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.mode-switch {
+  display: inline-flex;
+}
+
+.mode-switch button:first-child {
+  border-radius: 8px 0 0 8px;
+}
+
+.mode-switch button:last-child {
+  border-radius: 0 8px 8px 0;
+  border-left: none;
+}
+
+.mode-switch button[aria-pressed="true"] {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #ffffff;
+  font-weight: 600;
+}
+
+/* ---------- messages ---------- */
+
+.problem {
+  color: var(--error);
+  font-weight: 600;
+}
+
+.message {
+  font-size: 14px;
+  margin-top: 3px;
+}
+
+.message.error {
+  color: var(--error);
+}
+
+.message.hint {
+  color: var(--muted);
+}
+
+.message.warning {
+  color: var(--warning);
+  background: var(--warning-soft);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.message:empty {
+  display: none;
+}
+
+/* ---------- comparison section ---------- */
+
+#comparison {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin-bottom: 10px;
+}
+
+.note {
+  background: var(--warning-soft);
+  border-left: 4px solid #e8c547;
+  padding: 4px 10px;
+  margin-top: 6px;
+}
+
+/* ---------- the calculator table ---------- */
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+/* the label column; the property and delta columns share the rest of the width equally */
+tbody th[scope="row"] {
+  width: 40%;
+}
+
+body.comparison tbody th[scope="row"] {
+  width: 31%;
+}
+
+/* fixed widths for Property A, Property B, and the delta, so the table does not jump when a delta disappears */
+body.comparison thead th:not(:first-child),
+body.comparison tbody td {
+  width: 23%;
+  white-space: nowrap;
+}
+
+body.comparison .message {
+  white-space: normal;
+}
+
+thead th {
+  font-size: 15px;
+  text-align: right;
+  padding: 4px 10px;
+}
+
+tbody th,
+tbody td {
+  border-top: 1px solid var(--line);
+  padding: 5px 10px;
+  vertical-align: top;
+  text-align: left;
+}
+
+.section-row th {
+  border-top: none;
+  padding-top: 10px;
+  padding-bottom: 4px;
+}
+
+.item-name {
+  font-weight: 600;
+}
+
 .explanation {
-  color: #4b5563;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: normal;
+}
+
+td.value {
+  text-align: right;
+}
+
+tbody td {
+  text-align: right;
+}
+
+input {
+  display: block;
+  width: 100%;
+  max-width: 240px;
+  margin-left: auto;
+  font: inherit;
+  font-size: 17px;
+  text-align: right;
+  padding: 5px 8px;
+  border: 1px solid #b8bec6;
+  border-radius: 6px;
+}
+
+input[aria-invalid="true"] {
+  border-color: var(--error);
+}
+
+.result {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.delta {
+  font-weight: 700;
+  color: var(--accent);
+  background: var(--accent-soft);
+  border-radius: 6px;
+  padding: 3px 8px;
+  display: inline-block;
+}
+
+.formula {
+  display: block;
+}
+
+/* ---------- modes and the hide/show explanations control ---------- */
+
+body:not(.comparison) .comparison-only {
+  display: none;
 }
 
 body.explanations-hidden .explanation {
   display: none;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
 }

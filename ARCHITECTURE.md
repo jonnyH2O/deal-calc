@@ -124,16 +124,18 @@ older answer never replaces a newer one.
    - Test both sides of every comparison, such as 25 and 25.1 for "above 25".
    - Run `python tests/line_coverage.py` and get your module to 100% of lines. It uses only the standard library.
    - `tests/test_input_checker.py` is the example to follow.
+   - For the Calculator Page, which Python cannot run, walk `tests/page_checklist.md` in a browser.
 8. **Every change gets a second member's review** on GitHub before it is merged.
 
 ## Current state
 
-Every Python module is written and tested, and every line of every module runs in the tests
-(`python tests/line_coverage.py`). The Python side works end to end: `POST /evaluate` returns results, worked
-formulas, warnings, and deltas. The Calculator Page (`dealcalc/static/`) is still a skeleton with empty functions.
+The calculator is complete. Every Python module is written and tested, and every line of every module runs in the
+tests (`python tests/line_coverage.py`). The Calculator Page cannot be run from Python, so
+`tests/test_calculator_page.py` checks its files and `tests/page_checklist.md` is walked by hand in a browser; it
+takes every state and transition in SDS Figure 3.
 
 Done so far: M4 (skeleton), M5 (Deal Math), M6 (Input Checker), M7 (Number Formatter), M8 (Teaching Content),
-M9 (Deal Evaluator), and M10 (Page Host).
+M9 (Deal Evaluator), M10 (Page Host), and M11 and M12 (Calculator Page).
 
 | Milestone | Module | Owner | Due |
 |---|---|---|---|
