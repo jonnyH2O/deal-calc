@@ -43,7 +43,11 @@ def compute(deal: Deal) -> Results:
 
     No side effects. Expects price > 0, which the Input Checker guarantees.
     """
-    raise NotImplementedError("deal_math.compute() is not written yet (Project Plan M5).")
+    gpr = deal.monthly_rent * 12
+    egi = gpr * (1 - deal.vacancy_pct / 100)
+    noi = egi - deal.operating_costs
+    cap_rate_pct = noi / deal.price * 100
+    return Results(gpr=gpr, egi=egi, noi=noi, cap_rate_pct=cap_rate_pct)
 
 
 def deltas(deal_a: Deal, results_a: Results, deal_b: Deal, results_b: Results) -> dict[str, float]:
@@ -51,4 +55,6 @@ def deltas(deal_a: Deal, results_a: Results, deal_b: Deal, results_b: Results) -
 
     No side effects.
     """
-    raise NotImplementedError("deal_math.deltas() is not written yet (Project Plan M5).")
+    differences = {field: getattr(deal_b, field) - getattr(deal_a, field) for field in INPUT_FIELDS}
+    differences.update({field: getattr(results_b, field) - getattr(results_a, field) for field in RESULT_FIELDS})
+    return differences
