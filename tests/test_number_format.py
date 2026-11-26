@@ -14,12 +14,16 @@ _sign(value, plus)
 format_delta(field, x)
     D1  field is a rate field           true: test_D1_rate_fields       false: test_D1_dollar_fields
 
+format_input(x)  (no branches: it writes two decimals, then drops trailing zeros and a trailing ".")
+    I   whole numbers, cents, one decimal, rounding   test_I_numbers_as_typed
+
 format_money, format_percent, and _money have no branches of their own; they are covered by the tests above.
 """
 
 import unittest
 
-from dealcalc.number_format import MINUS, format_delta, format_money, format_percent
+from dealcalc.input_checker import parse_number
+from dealcalc.number_format import MINUS, format_delta, format_input, format_money, format_percent
 
 
 class TestRounding(unittest.TestCase):
@@ -78,6 +82,22 @@ class TestFormatDelta(unittest.TestCase):
         for field in ("price", "monthly_rent", "operating_costs", "gpr", "egi", "noi"):
             with self.subTest(field=field):
                 self.assertEqual(format_delta(field, 14_400), "+$14,400")
+
+
+class TestFormatInput(unittest.TestCase):
+
+    def test_I_numbers_as_typed(self):
+        cases = [(1_200_000, "1,200,000"), (1_350_000.0, "1,350,000"), (14_583.333333, "14,583.33"),
+                 (7.5, "7.5"), (5.0, "5"), (0, "0"), (10.5, "10.5"), (999.995, "1,000"), (0.004, "0")]
+        for x, text in cases:
+            with self.subTest(x=x):
+                self.assertEqual(format_input(x), text)
+
+    def test_I_the_input_checker_reads_it_back(self):
+        # a number read from a report goes into an input box, so the Input Checker must read it as the same number
+        for x in (1_200_000, 14_583.33, 7.5, 0):
+            with self.subTest(x=x):
+                self.assertEqual(parse_number(format_input(x)), x)
 
 
 class TestSrsExamples(unittest.TestCase):

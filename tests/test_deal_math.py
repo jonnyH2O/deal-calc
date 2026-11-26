@@ -1,7 +1,7 @@
-"""White-box tests for Deal Math (dealcalc/deal_math.py; SDS 4.1; R4, R5, R12).
+"""White-box tests for Deal Math (dealcalc/deal_math.py; SDS 4.1; R4, R5, R12, and the report conversions).
 
-Deal Math has no branches: compute() is four formulas in a row, and deltas() is two loops over fixed field lists.
-White-box testing here means testing each statement where it can go wrong:
+Deal Math has no branches: compute() is four formulas in a row, deltas() is two loops over fixed field lists, and
+each report conversion is one formula. White-box testing here means testing each statement where it can go wrong:
 
 compute(deal)
     F1  gpr = monthly_rent × 12                  test_F1_gpr
@@ -14,11 +14,17 @@ deltas(deal_a, results_a, deal_b, results_b)
     L2  loop over the 4 result fields            test_L1_L2_every_field_is_b_minus_a
     the order is B minus A, not A minus B        test_sample_deltas, test_swapping_a_and_b_flips_signs
     the same property gives all zeros            test_same_property_gives_zero_deltas
+report conversions (used by the Report Reader)
+    C1  monthly_from_yearly: yearly ÷ 12         test_C1_monthly_from_yearly
+    C2  yearly_from_monthly: monthly × 12        test_C2_yearly_from_monthly
+    C3  total_from_average: average × units      test_C3_total_from_average
+    C4  vacancy_from_occupancy: 100 − occupancy  test_C4_vacancy_from_occupancy
 """
 
 import unittest
 
-from dealcalc.deal_math import INPUT_FIELDS, RESULT_FIELDS, Deal, Results, compute, deltas
+from dealcalc.deal_math import (INPUT_FIELDS, RESULT_FIELDS, Deal, Results, compute, deltas, monthly_from_yearly,
+                                total_from_average, vacancy_from_occupancy, yearly_from_monthly)
 
 SAMPLE_A = Deal(price=1_200_000, monthly_rent=14_400, vacancy_pct=5, operating_costs=62_000)
 SAMPLE_B = Deal(price=1_350_000, monthly_rent=15_600, vacancy_pct=7, operating_costs=70_000)
@@ -106,6 +112,33 @@ class TestDeltas(unittest.TestCase):
 
     def test_same_property_gives_zero_deltas(self):
         self.assertEqual(set(deltas(SAMPLE_A, compute(SAMPLE_A), SAMPLE_A, compute(SAMPLE_A)).values()), {0})
+
+
+class TestReportConversions(unittest.TestCase):
+
+    def test_C1_monthly_from_yearly(self):
+        self.assertEqual(monthly_from_yearly(187_200), 15_600)  # sample deal B's yearly rent (R9)
+        self.assertAlmostEqual(monthly_from_yearly(175_000), 14_583.333333, places=5)
+        self.assertEqual(monthly_from_yearly(0), 0)
+
+    def test_C2_yearly_from_monthly(self):
+        self.assertEqual(yearly_from_monthly(3_000), 36_000)
+        self.assertEqual(yearly_from_monthly(0), 0)
+
+    def test_C3_total_from_average(self):
+        self.assertEqual(total_from_average(1_200, 12), 14_400)  # sample deal A: 12 units at $1,200
+        self.assertEqual(total_from_average(1_150, 6), 6_900)
+
+    def test_C4_vacancy_from_occupancy(self):
+        self.assertEqual(vacancy_from_occupancy(95), 5)
+        self.assertEqual(vacancy_from_occupancy(100), 0)
+        self.assertEqual(vacancy_from_occupancy(0), 100)
+        self.assertAlmostEqual(vacancy_from_occupancy(92.5), 7.5)
+
+    def test_conversions_and_compute_agree(self):
+        # a yearly rent turned into a monthly rent gives that yearly rent back as GPR
+        deal = Deal(price=1_000_000, monthly_rent=monthly_from_yearly(175_000), vacancy_pct=0, operating_costs=0)
+        self.assertAlmostEqual(compute(deal).gpr, 175_000)
 
 
 if __name__ == "__main__":

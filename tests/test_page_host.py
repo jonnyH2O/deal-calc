@@ -11,13 +11,22 @@ DealRequestHandler.do_GET()
     G1  path is a page file                     true: test_G1_page_files          false: test_G2_text
     G2  path is /text                           true: test_G2_text                false: test_G3_unknown_get
 DealRequestHandler.do_POST()
-    P1  path is not /evaluate                   true: test_P1_unknown_post        false: test_P4_evaluate
+    P1  path is not /evaluate or /read-reports  true: test_P1_unknown_post        false: test_P4_evaluate
     P2  Content-Length or body not readable     true: test_P2_not_json, test_P2_content_length_not_a_number
                                                 false: test_P4_evaluate
+    P2b Content-Length over MAX_BODY_BYTES      true: test_P2_body_too_large      false: test_P4_evaluate
+    P5  path is /read-reports                   true: test_P5_read_reports        false: test_P4_evaluate
+    P6  its body has the wrong shape            true: test_P6_read_reports_wrong_shape
+                                                false: test_P5_read_reports
     P3  body has the wrong shape                true: test_P3_wrong_shape         false: test_P4_evaluate
 DealRequestHandler._answer()
     A1  the Deal Evaluator fails unexpectedly   true: test_A1_unexpected_failure_gets_500
                                                 false: test_P4_evaluate
+reports_from(body)
+    B1  body is not a dictionary                true: test_B_reports_from         false: the same test
+    B2  a property has no report (null or left out)   true/false: test_B_reports_from
+    B3  a report has the wrong shape            true/false: test_B_reports_from
+    B4  a report's data is not base64           true/false: test_B_reports_from
 check_install()
     C1  page files are missing                  true: test_C1_missing_page_files  false: test_C3_ready
     C2  the self-check finds a problem          true: test_C2_self_check_fails    false: test_C3_ready
@@ -33,6 +42,7 @@ __main__.py
     V1  Python is older than 3.11               true: test_V1_old_python         false: test_V1_runs_main
 """
 
+import base64
 import contextlib
 import http.client
 import io
@@ -146,6 +156,32 @@ class TestPost(ServerTest):
         self.assertEqual(report["A"]["results"]["noi"], "$102,160")
         self.assertEqual(report["deltas"]["noi"], "+$1,936")
 
+    def test_P2_body_too_large(self):
+        # refused from its Content-Length alone, before the body is read
+        connection = http.client.HTTPConnection(page_host.HOST, self.port, timeout=5)
+        connection.putrequest("POST", "/read-reports")
+        connection.putheader("Content-Length", str(page_host.MAX_BODY_BYTES + 1))
+        connection.endheaders()
+        response = connection.getresponse()
+        self.assertEqual(response.status, 413)
+        self.assertEqual(json.loads(response.read()), {"error": deal_evaluator.reports_too_large(page_host.MAX_REPORT_MB)})
+        connection.close()
+
+    def test_P5_read_reports(self):
+        report = base64.b64encode(b"Asking Price: $1,200,000\nVacancy Rate: 5%").decode()
+        status, body = self.request("/read-reports", json.dumps({"A": {"name": "maple.txt", "data": report},
+                                                                 "B": None}).encode())
+        answer = json.loads(body)
+        self.assertEqual(status, 200)
+        self.assertIsNone(answer["B"])
+        self.assertEqual(answer["A"]["name"], "maple.txt")
+        self.assertEqual(answer["A"]["inputs"], {"price": "1,200,000", "vacancy_pct": "5"})
+
+    def test_P6_read_reports_wrong_shape(self):
+        status, body = self.request("/read-reports", json.dumps({"A": {"name": "x.pdf"}}).encode())
+        self.assertEqual(status, 400)
+        self.assertIn('"data": base64', json.loads(body)["error"])
+
     def test_A1_unexpected_failure_gets_500(self):
         with mock.patch.object(deal_evaluator, "evaluate", side_effect=RuntimeError("a bug")), \
                 contextlib.redirect_stderr(io.StringIO()) as terminal:
@@ -153,6 +189,25 @@ class TestPost(ServerTest):
         self.assertEqual(status, 500)
         self.assertIn("details are in the terminal", json.loads(body)["error"])
         self.assertIn("RuntimeError: a bug", terminal.getvalue())  # the details are printed for a maintainer
+
+
+class TestReportsFrom(unittest.TestCase):
+
+    def test_B_reports_from(self):
+        data = base64.b64encode(b"report").decode()
+        cases = [
+            ([], None),                                                              # not a dictionary
+            ({}, {"A": None, "B": None}),                                            # both left out
+            ({"A": {"name": "a.pdf", "data": data}, "B": None}, {"A": ("a.pdf", b"report"), "B": None}),
+            ({"A": None, "B": {"name": "", "data": data}}, {"A": None, "B": ("", b"report")}),
+            ({"A": "a.pdf"}, None),                                                  # not a dictionary
+            ({"A": {"name": 5, "data": data}}, None),                                # the name is not text
+            ({"A": {"name": "a.pdf", "data": None}}, None),                          # no data
+            ({"A": {"name": "a.pdf", "data": "not base64!"}}, None),                 # data not base64
+        ]
+        for body, reports in cases:
+            with self.subTest(body=body):
+                self.assertEqual(page_host.reports_from(body), reports)
 
 
 class TestCheckInstall(unittest.TestCase):

@@ -49,6 +49,26 @@ class TestCalculatorPage(unittest.TestCase):
             with self.subTest(function=name):
                 self.assertRegex(JS, rf"(async )?function {name}\(")
 
+    def test_page_js_has_the_report_functions(self):
+        # the "Load reports" window, not yet in the SDS
+        for name in ("openReports", "readReports", "reportFor", "applyReports"):
+            with self.subTest(function=name):
+                self.assertRegex(JS, rf"(async )?function {name}\(")
+        self.assertIn('fetch("/read-reports"', JS)
+
+    def test_every_property_has_its_report_elements(self):
+        # page.js builds these IDs from the property's letter, so the check above cannot see them
+        for prefix in ("report-file", "report-text", "report-summary", "source"):
+            self.assertIn(f"byId(`{prefix}-${{property}}`)", JS)
+            for side in ("A", "B"):
+                with self.subTest(element=f"{prefix}-{side}"):
+                    self.assertIn(f'id="{prefix}-{side}"', HTML)
+
+    def test_context_fields_are_results(self):
+        # the cap rate is shown as market context (R13); the constant must name a real result field
+        self.assertTrue(set(js_list("CONTEXT_FIELDS")) <= set(deal_math.RESULT_FIELDS))
+        self.assertEqual(js_list("CONTEXT_FIELDS"), ["cap_rate_pct"])
+
     def test_field_names_match_the_python_side(self):
         self.assertEqual(tuple(js_list("INPUT_FIELDS")), deal_math.INPUT_FIELDS)
         self.assertEqual(tuple(js_list("RESULT_FIELDS")), deal_math.RESULT_FIELDS)

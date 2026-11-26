@@ -53,6 +53,17 @@ Open that address in a browser. If port 8000 is busy, the calculator tries ports
 it chose. To start from a different port, run `python -m dealcalc --port 9000`. If it cannot start, it prints the
 problem and how to fix it.
 
+### Load property reports
+
+Instead of typing the numbers, press **Load reports**, choose a listing or property report for Property A (and one
+for Property B to compare two), and press **Read reports**. The calculator reads PDF, Word (.docx), and text
+files, or text you paste in. It shows where it found each number and how it worked out any it had to convert, such
+as a yearly rent divided by 12. Check the numbers against the report: anything it could not find is left empty for
+you to type. Encrypted PDFs and scans can't be read; copy their text and paste it instead, or type the numbers in.
+
+To try it, use the made-up listings in `samples/`: `maple-court-listing.pdf` for Property A and
+`oak-grove-listing.pdf` for Property B.
+
 ## Test
 
 ```bash

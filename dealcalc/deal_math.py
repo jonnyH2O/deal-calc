@@ -1,7 +1,7 @@
 """Deal Math: a property's checked inputs and results, and all the math in the SRS.
 
 Owner: Alejandro Zamorano (Project Plan M5). Skeleton: Jonny Heinrich.
-Design: SDS Section 4.1. Requirements: R4, R5, R12.
+Design: SDS Section 4.1. Requirements: R4, R5, R12, and the report conversions below (not yet in the SRS).
 
 This is the only module with formulas. It uses no other module.
 """
@@ -58,3 +58,26 @@ def deltas(deal_a: Deal, results_a: Results, deal_b: Deal, results_b: Results) -
     differences = {field: getattr(deal_b, field) - getattr(deal_a, field) for field in INPUT_FIELDS}
     differences.update({field: getattr(results_b, field) - getattr(results_a, field) for field in RESULT_FIELDS})
     return differences
+
+
+# Conversions for numbers a property report gives in another form than the inputs. The Report Reader uses them,
+# so that every formula stays in this module.
+
+def monthly_from_yearly(yearly: float) -> float:
+    """A yearly amount as a monthly one, such as a yearly rent: yearly ÷ 12."""
+    return yearly / 12
+
+
+def yearly_from_monthly(monthly: float) -> float:
+    """A monthly amount as a yearly one, such as monthly operating costs: monthly × 12."""
+    return monthly * 12
+
+
+def total_from_average(average_per_unit: float, units: float) -> float:
+    """The monthly rent for all units from the average rent per unit: average × units."""
+    return average_per_unit * units
+
+
+def vacancy_from_occupancy(occupancy_pct: float) -> float:
+    """The vacancy rate, as a percent, from the share of the property that is rented: 100 − occupancy."""
+    return 100 - occupancy_pct

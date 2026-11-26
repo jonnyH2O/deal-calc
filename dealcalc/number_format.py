@@ -50,6 +50,14 @@ def format_percent(x: float) -> str:
     return f"{_sign(value, plus=False)}{abs(value):,.2f}%"
 
 
+def format_input(x: float) -> str:
+    """A number the way a member would type it in an input: commas, at most two decimals, no "$" or "%".
+
+    1200000 → "1,200,000"; 14583.3333 → "14,583.33"; 7.5 → "7.5". Used for numbers read from a property report.
+    """
+    return f"{_rounded(x, 2):,.2f}".rstrip("0").rstrip(".")
+
+
 def format_delta(field: str, x: float) -> str:
     """A signed delta: dollars for amounts ("+$1,936"), percentage points for RATE_FIELDS ("−0.80 points").
 

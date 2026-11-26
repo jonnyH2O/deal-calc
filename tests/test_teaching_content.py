@@ -10,12 +10,22 @@ text rules
     T3  every input and result has a name and a one-sentence
         definition; every input says where to find it (R7, R8)     test_T3_definitions
     T4  every term the text uses is defined on the page (R17)      test_T4_every_term_used_is_defined
-    T5  the cap rate note names risk, location, and condition (R13) test_T5_cap_rate_note
+    T5  the cap rate note names risk, location, and condition, and calls the cap rates market context (R13)
+                                                                    test_T5_cap_rate_note
     T6  the sample deals are the SRS's numbers (R5, R9)             test_T6_sample_deals
+    T7  the reports purpose is one or two sentences (R6)           test_T7_reports_purpose
+    T8  every report problem names the file and says what to do    test_T8_report_problems
+    T9  every worked conversion shows its formula                  test_T9_report_worked_formulas
 worked_formulas(deal, results)
     W1  each of the four formulas, with the sample deal (R8)       test_W1_sample_deal_formulas
     W2  a negative NOI keeps its minus sign through the formulas   test_W2_negative_noi
     W3  the formulas use the Number Formatter's rounding           test_W3_rounding_matches_the_results
+report_summary(values, sources, worked)
+    S1  an input not found                    true: test_S1_inputs_not_found        false: test_S2_found_as_given
+    S2  the vacancy rate (a percent) or money true: test_S2_found_as_given (both)
+    S3  report text longer than the limit     true: test_S3_long_source_is_cut     false: test_S2_found_as_given
+    S4  an input worked out; occupancy (a percent) or money; with units or not
+                                              test_S4_worked_conversions         false: test_S2_found_as_given
 """
 
 import re
@@ -34,8 +44,10 @@ def sentences(paragraph):
 
 def all_text():
     """Every piece of member-facing text in Teaching Content."""
-    pieces = [text.PAGE_PURPOSE, text.INFO_HINT, text.CAP_RATE_NOTE, text.DELTAS_NEED_FIXING,
-              *text.SECTION_PURPOSES.values()]
+    pieces = [text.PAGE_PURPOSE, text.INFO_HINT, text.CAP_RATE_NOTE, text.CAP_RATE_TAG, text.DELTAS_NEED_FIXING,
+              *text.SECTION_PURPOSES.values(), text.REPORTS_PURPOSE, text.REPORTS_CHOOSE_FIRST,
+              text.REPORTS_TOO_LARGE, text.PASTED_REPORT_NAME, text.REPORT_FOUND, text.REPORT_NOT_FOUND,
+              *text.REPORT_WORKED.values(), *text.REPORT_PROBLEMS.values()]
     for entry in text.DEFINITIONS.values():
         pieces.extend(entry.values())
     return pieces
@@ -86,9 +98,34 @@ class TestText(unittest.TestCase):
                     self.assertNotIn(jargon.lower(), piece.lower())
 
     def test_T5_cap_rate_note(self):
-        for word in ("risk", "location", "building condition", "not always a better deal"):
+        for word in ("risk", "location", "building condition", "not always a better deal", "market context"):
             with self.subTest(word=word):
                 self.assertIn(word, text.CAP_RATE_NOTE)
+        self.assertEqual(text.CAP_RATE_TAG, "market context")  # the tag is explained by the note
+
+    def test_T7_reports_purpose(self):
+        self.assertIn(sentences(text.REPORTS_PURPOSE), (1, 2))
+        for kind in ("PDF", "Word", "text", "paste"):
+            with self.subTest(kind=kind):
+                self.assertIn(kind, text.REPORTS_PURPOSE)
+        self.assertEqual(sentences(text.REPORTS_CHOOSE_FIRST), 1)
+        self.assertIn("{limit} MB", text.REPORTS_TOO_LARGE)
+
+    def test_T8_report_problems(self):
+        self.assertEqual(set(text.REPORT_PROBLEMS), {"encrypted", "unreadable", "no_text", "not_supported"})
+        for problem, message in text.REPORT_PROBLEMS.items():
+            with self.subTest(problem=problem):
+                self.assertIn("{name}", message)
+                self.assertIn("type the numbers in", message.lower())  # every problem says what to do instead
+
+    def test_T9_report_worked_formulas(self):
+        formulas = {"yearly_rent": "÷ 12", "average_rent": "{given} × {units}", "monthly_costs": "× 12",
+                    "occupancy": f"100% {MINUS} {{given}}"}
+        self.assertEqual(set(text.REPORT_WORKED), set(formulas))
+        for how, formula in formulas.items():
+            with self.subTest(how=how):
+                self.assertIn(formula, text.REPORT_WORKED[how])
+                self.assertIn("= {value}", text.REPORT_WORKED[how])
 
     def test_T6_sample_deals(self):
         self.assertEqual(set(text.SAMPLE_DEALS), {"A", "B"})
@@ -139,6 +176,55 @@ class TestWorkedFormulas(unittest.TestCase):
     def test_every_result_has_a_formula(self):
         deal = Deal(price=1_200_000, monthly_rent=14_400, vacancy_pct=5, operating_costs=62_000)
         self.assertEqual(list(text.worked_formulas(deal, compute(deal))), list(RESULT_FIELDS))
+
+
+class TestReportSummary(unittest.TestCase):
+
+    def test_S1_inputs_not_found(self):
+        self.assertEqual(text.report_summary({}, {}, {}), [
+            "Purchase price: not found in the report, so type it in.",
+            "Monthly rent (all units): not found in the report, so type it in.",
+            "Vacancy rate: not found in the report, so type it in.",
+            "Yearly operating costs: not found in the report, so type it in.",
+        ])
+
+    def test_S2_found_as_given(self):
+        values = {"price": 1_200_000, "vacancy_pct": 5}
+        sources = {"price": "Asking Price $1,200,000", "vacancy_pct": "Vacancy Rate\t 5%"}
+        self.assertEqual(text.report_summary(values, sources, {}), [
+            "Purchase price: $1,200,000, from “Asking Price $1,200,000”.",
+            "Monthly rent (all units): not found in the report, so type it in.",
+            "Vacancy rate: 5.00%, from “Vacancy Rate 5%”.",  # spaces and tabs in the report text become one space
+            "Yearly operating costs: not found in the report, so type it in.",
+        ])
+
+    def test_S3_long_source_is_cut(self):
+        source = "Asking Price " + "x" * 100 + " $1,200,000"
+        line = text.report_summary({"price": 1_200_000}, {"price": source}, {})[0]
+        quoted = line.split("“")[1].split("”")[0]
+        self.assertEqual(len(quoted), text.REPORT_SOURCE_LIMIT)
+        self.assertTrue(quoted.endswith("…"))
+
+    def test_S4_worked_conversions(self):
+        values = {"monthly_rent": 6_900, "vacancy_pct": 5, "operating_costs": 36_000}
+        sources = {"monthly_rent": "Average rent: $1,150", "vacancy_pct": "95% occupied",
+                   "operating_costs": "Monthly expenses: $3,000"}
+        worked = {"monthly_rent": ("average_rent", 1_150, 6), "vacancy_pct": ("occupancy", 95, None),
+                  "operating_costs": ("monthly_costs", 3_000, None)}
+        summary = text.report_summary(values, sources, worked)
+        self.assertIn("The report gives an average rent of $1,150 for each of its 6 units, so the monthly rent is "
+                      "$1,150 × 6 = $6,900.", summary)
+        self.assertIn(f"The report says 95.00% of the property is rented, so the vacancy rate is 100% {MINUS} "
+                      "95.00% = 5.00%.", summary)
+        self.assertIn("The report gives monthly operating costs of $3,000, so the yearly operating costs are "
+                      "$3,000 × 12 = $36,000.", summary)
+        yearly = text.report_summary({"monthly_rent": 15_600}, {"monthly_rent": "GSI $187,200"},
+                                     {"monthly_rent": ("yearly_rent", 187_200, None)})
+        self.assertIn("The report gives a yearly rent of $187,200, so the monthly rent is $187,200 ÷ 12 = $15,600.",
+                      yearly)
+        # each worked line comes right after the line for its input
+        self.assertEqual(summary[summary.index("Vacancy rate: 5.00%, from “95% occupied”.") + 1][:28],
+                         "The report says 95.00% of th")
 
 
 if __name__ == "__main__":

@@ -7,12 +7,16 @@ Routes (all on 127.0.0.1, so only this computer can reach them):
     GET  /, /page.css, /page.js   the Calculator Page's files
     GET  /text                    deal_evaluator.page_text() as JSON
     POST /evaluate                body {"A": raw, "B": raw or null, "seq": int}; returns evaluate(A, B) plus seq
-Unknown paths get 404, and a body that is not valid JSON gets 400 with a message. If something inside the
-calculator fails unexpectedly, the page gets 500 with a message and the details are printed in the terminal, so
-the problem can be found and fixed.
+    POST /read-reports            body {"A": report or null, "B": report or null}, report = {"name": str,
+                                  "data": the file's bytes in base64}; returns read_reports() (not yet in the SDS)
+Unknown paths get 404, a body that is not valid JSON or has the wrong shape gets 400 with a message, and a body
+larger than MAX_BODY_BYTES gets 413. If something inside the calculator fails unexpectedly, the page gets 500 with
+a message and the details are printed in the terminal, so the problem can be found and fixed.
 """
 
 import argparse
+import base64
+import binascii
 import json
 import os
 import socket
@@ -27,6 +31,8 @@ from dealcalc import deal_evaluator
 HOST = "127.0.0.1"
 DEFAULT_PORT = 8000
 PORT_TRIES = 10  # tries ports N to N+9
+MAX_REPORT_MB = 18             # the largest report file the page may send, in megabytes
+MAX_BODY_BYTES = 50_000_000    # the largest request body read: two reports of MAX_REPORT_MB each, in base64
 STATIC_DIR = Path(__file__).with_name("static")
 PAGE_FILES = {
     "/": ("page.html", "text/html; charset=utf-8"),
@@ -63,14 +69,25 @@ class DealRequestHandler(BaseHTTPRequestHandler):
             self._send_message(HTTPStatus.NOT_FOUND, f"There is no page at {self.path}.")
 
     def do_POST(self):
-        if self.path != "/evaluate":
+        if self.path not in ("/evaluate", "/read-reports"):
             self._send_message(HTTPStatus.NOT_FOUND, f"There is no page at {self.path}.")
             return
         try:
             length = int(self.headers.get("Content-Length", 0))
+            if length > MAX_BODY_BYTES:
+                self._send_message(HTTPStatus.REQUEST_ENTITY_TOO_LARGE, deal_evaluator.reports_too_large(MAX_REPORT_MB))
+                return
             body = json.loads(self.rfile.read(length))
         except ValueError:  # a Content-Length that is not a number, or a body that is not JSON
             self._send_message(HTTPStatus.BAD_REQUEST, "The request body is not valid JSON.")
+            return
+        if self.path == "/read-reports":
+            reports = reports_from(body)
+            if reports is None:
+                self._send_message(HTTPStatus.BAD_REQUEST, 'The request body must be {"A": {"name": text, "data": '
+                                                           'base64} or null, "B": the same or null}.')
+                return
+            self._answer(lambda: deal_evaluator.read_reports(reports))
             return
         if not (isinstance(body, dict) and isinstance(body.get("A"), dict)
                 and isinstance(body.get("B"), (dict, type(None))) and isinstance(body.get("seq"), int)):
@@ -103,6 +120,27 @@ class DealRequestHandler(BaseHTTPRequestHandler):
 
     def log_message(self, format, *args):
         pass  # keep the terminal for the status report
+
+
+def reports_from(body: object) -> dict | None:
+    """The reports in a POST /read-reports body, as {"A": (name, bytes) or None, "B": (name, bytes) or None}, or None
+    if the body has the wrong shape or a file's data is not base64. A missing "A" or "B" means no report."""
+    if not isinstance(body, dict):
+        return None
+    reports = {}
+    for side in ("A", "B"):
+        report = body.get(side)
+        if report is None:
+            reports[side] = None
+            continue
+        if not (isinstance(report, dict) and isinstance(report.get("name"), str)
+                and isinstance(report.get("data"), str)):
+            return None
+        try:
+            reports[side] = (report["name"], base64.b64decode(report["data"], validate=True))
+        except binascii.Error:
+            return None
+    return reports
 
 
 def check_install() -> str | None:

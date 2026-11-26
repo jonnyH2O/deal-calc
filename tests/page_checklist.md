@@ -34,6 +34,17 @@ window to 1280 × 720 for check 9.
 | 10 | Type `abc` for Property B's price. | The deltas change to "—", and the note says to fix Property B. The table does not change width. | R12 |
 | 11 | Press **Single property**, then **Compare two** again. | Property A's numbers were kept both ways. | R11, switchMode("single") |
 
+## Property reports (not yet in SDS Figure 3)
+
+| # | Do this | Check that | Covers |
+|---|---|---|---|
+| 11a | In comparison mode with a sample deal showing, look at the **Cap rate** row. | A grey "market context" tag sits next to its name, and its delta is grey, not blue like the other deltas. Press **Single property**: the tag goes away. | R13 |
+| 11b | Press **Single property**, then **Load reports**, choose `samples/maple-court-listing.pdf` for Property A, and press **Read reports**. | The window lists the four inputs, each with the report text it came from. Behind it, Property A shows 1,200,000 / 14,400 / 5 / 62,000 and the results match check 3; "maple-court-listing.pdf" shows beside the Property A heading. Property A's file chooser is empty again. | openReports(), readReports(), applyReports() |
+| 11c | Change Property A's vacancy rate to 6. Press **Load reports**, choose `samples/oak-grove-listing.pdf` for Property B, press **Read reports**, then **Close**. | The page switches to Compare two. Property B shows 1,350,000 / 15,600 / 7 / 70,000, and the window said the monthly rent is $187,200 ÷ 12 = $15,600. Property A's vacancy rate is still 6. Every delta shows, and the page still fits in 1280 × 720 without scrolling. | R11, R12, R16 |
+| 11d | Press **Load reports**, choose a picture (a .png) for Property B, and press **Read reports**. | The window says the file isn't a PDF, Word, or text file and says what to do instead. Property B's numbers do not change. | a report that cannot be read |
+| 11e | Choose a file for Property B, then paste `Asking price: $640,000` and `Occupancy: 95%` (on two lines) into its text box. Press **Read reports**. | The chosen file is cleared when you paste. Property B shows 640,000 and a vacancy rate of 5, with "Pasted text" beside its heading; its monthly rent and operating costs are empty with grey hints, and the window says they were not found. | pasted text, inputs not found |
+| 11f | Press **Read reports** with no file chosen and nothing pasted. Then press **Try a sample deal**. | A red message says to choose a file or paste text first. After the sample deal, no report names show beside the headings. | fillSample() |
+
 ## Explanations (Figure 3: Explanation closed ⇄ Explanation open, for each info button)
 
 | # | Do this | Check that | Covers |

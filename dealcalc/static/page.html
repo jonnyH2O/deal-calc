@@ -5,6 +5,7 @@
   Design: SDS Section 4.7 and Figure 3. Requirements: R6 to R13, R15, R16.
   The page does no math. Its text comes from GET /text, and the rows are built by page.js.
   Explanations start hidden. Each section and item has an info button that shows its own explanation.
+  The "Load reports" window sends property reports to POST /read-reports (not yet in the SDS).
 -->
 <html lang="en">
 <head>
@@ -25,6 +26,7 @@
         <button type="button" id="mode-single" aria-pressed="true">Single property</button>
         <button type="button" id="mode-comparison" aria-pressed="false">Compare two</button>
       </div>
+      <button type="button" id="load-reports" aria-haspopup="dialog">Load reports</button>
       <button type="button" id="sample-deal">Try a sample deal</button>
     </div>
   </header>
@@ -45,8 +47,8 @@
     <thead>
       <tr>
         <th scope="col"><span class="visually-hidden">Item</span></th>
-        <th scope="col">Property A</th>
-        <th scope="col" class="comparison-only">Property B</th>
+        <th scope="col">Property A<span class="source" id="source-A"></span></th>
+        <th scope="col" class="comparison-only">Property B<span class="source" id="source-B"></span></th>
         <th scope="col" class="comparison-only">Delta (B &minus; A)</th>
       </tr>
     </thead>
@@ -73,6 +75,34 @@
       </tr>
     </tbody>
   </table>
+
+  <dialog id="report-dialog" aria-labelledby="report-heading">
+    <h2 id="report-heading">Load property reports</h2>
+    <p id="reports-purpose"></p>
+    <div class="report-slots">
+      <fieldset>
+        <legend>Property A</legend>
+        <label for="report-file-A">Report file</label>
+        <input type="file" id="report-file-A" accept=".pdf,.docx,.txt,application/pdf,text/plain">
+        <label for="report-text-A">or paste its text</label>
+        <textarea id="report-text-A" rows="3"></textarea>
+        <ul class="report-summary" id="report-summary-A" aria-live="polite"></ul>
+      </fieldset>
+      <fieldset>
+        <legend>Property B (optional)</legend>
+        <label for="report-file-B">Report file</label>
+        <input type="file" id="report-file-B" accept=".pdf,.docx,.txt,application/pdf,text/plain">
+        <label for="report-text-B">or paste its text</label>
+        <textarea id="report-text-B" rows="3"></textarea>
+        <ul class="report-summary" id="report-summary-B" aria-live="polite"></ul>
+      </fieldset>
+    </div>
+    <p class="problem" id="report-problem" role="alert" hidden></p>
+    <div class="dialog-buttons">
+      <button type="button" id="close-reports">Close</button>
+      <button type="button" id="read-reports" class="primary">Read reports</button>
+    </div>
+  </dialog>
 
   <script src="/page.js"></script>
 </body>

@@ -5,6 +5,9 @@
 // This file does no math and holds almost no wording: the Python side sends every number already worked out and
 // formatted, and every explanation comes from GET /text. The only words here are labels and the message shown
 // when the page cannot reach the calculator at all (it cannot ask the calculator for that message).
+//
+// The "Load reports" window (not yet in the SDS) sends one or two property reports to POST /read-reports, which
+// finds their inputs; the page fills them in and asks for an evaluation as if they had been typed.
 
 "use strict";
 
@@ -12,6 +15,8 @@
 const INPUT_FIELDS = ["price", "monthly_rent", "vacancy_pct", "operating_costs"];
 const RESULT_FIELDS = ["gpr", "egi", "noi", "cap_rate_pct"];
 const PROPERTIES = ["A", "B"];
+// Results whose side-by-side values are market context rather than a score, so their delta is shown plainly (R13).
+const CONTEXT_FIELDS = ["cap_rate_pct"];
 const NOT_YET = "—"; // "—", shown where a number cannot be worked out yet
 const CANNOT_REACH = "This page can't reach the calculator. Start it with python -m dealcalc, then reload this page.";
 
@@ -46,6 +51,7 @@ async function loadText() {
     byId(`${section}-purpose`).textContent = pageText.section_purposes[section];
   }
   byId("cap-rate-note").textContent = pageText.cap_rate_note;
+  byId("reports-purpose").textContent = pageText.reports_purpose;
   buildRows();
   connectControls();
   requestEvaluation();  // shows a hint under each empty input
@@ -126,6 +132,12 @@ function labelRow(field, isInput) {
     label.append(name);
   }
   label.append(infoButton(row, entry.name));
+  if (CONTEXT_FIELDS.includes(field)) {
+    const tag = document.createElement("span");
+    tag.className = "tag comparison-only";
+    tag.textContent = pageText.cap_rate_tag;
+    label.append(tag);
+  }
   label.append(explanation(entry.definition));
   if (isInput) {
     label.append(explanation(`Where to find it: ${entry.where_to_find}`));
@@ -163,6 +175,16 @@ function connectControls() {
   byId("mode-single").addEventListener("click", () => switchMode("single"));
   byId("mode-comparison").addEventListener("click", () => switchMode("comparison"));
   byId("sample-deal").addEventListener("click", fillSample);
+  byId("load-reports").addEventListener("click", openReports);
+  byId("read-reports").addEventListener("click", readReports);
+  byId("close-reports").addEventListener("click", () => byId("report-dialog").close());
+  // a property's report is a file or pasted text, whichever was chosen last, so what shows is what will be read
+  for (const property of PROPERTIES) {
+    const file = byId(`report-file-${property}`);
+    const text = byId(`report-text-${property}`);
+    file.addEventListener("change", () => { text.value = ""; });
+    text.addEventListener("input", () => { file.value = ""; });
+  }
   // the section info buttons are in page.html; each names the element it explains in data-explains
   for (const button of document.querySelectorAll(".info[data-explains]")) {
     const explainable = byId(button.dataset.explains);
@@ -220,7 +242,7 @@ function render(report) {
     const delta = byId(`delta-${field}`);
     const text = report.deltas ? report.deltas[field] : NOT_YET;
     delta.textContent = text;
-    delta.className = report.deltas ? "delta" : "";
+    delta.className = report.deltas ? (CONTEXT_FIELDS.includes(field) ? "delta context" : "delta") : "";
   }
   const deltasMessage = byId("deltas-message");
   deltasMessage.textContent = report.deltas_message || "";
@@ -300,8 +322,116 @@ function fillSample() {
       state.inputs[property][field] = text;
       byId(`input-${property}-${field}`).value = text;
     }
+    showSource(property, "");  // these numbers no longer come from a report
   }
   requestEvaluation();
+}
+
+// ---------------------------------------------------------------- property reports (not yet in SDS Figure 3)
+
+// Open the "Load reports" window. It keeps the last reports chosen and what was found in them.
+function openReports() {
+  byId("report-dialog").showModal();
+}
+
+// Send the report chosen for each property to POST /read-reports, then fill in what it found. The button is off
+// while the calculator reads, so a second press cannot send the reports twice.
+async function readReports() {
+  const button = byId("read-reports");
+  button.disabled = true;
+  byId("report-problem").hidden = true;
+  try {
+    const body = { A: await reportFor("A"), B: await reportFor("B") };
+    if (!body.A && !body.B) {
+      showReportProblem(pageText.reports_choose_first);
+      return;
+    }
+    const response = await fetch("/read-reports", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    const answer = await response.json();
+    if (!response.ok) {
+      showReportProblem(answer.error);
+      return;
+    }
+    applyReports(answer);
+  } catch (problem) {
+    showReportProblem(CANNOT_REACH);
+  } finally {
+    button.disabled = false;
+  }
+}
+
+// One property's report as {name, data}, with the file's bytes in base64, or null if none was chosen. A chosen
+// file comes before pasted text. Pasted text has no name; the calculator gives it one.
+async function reportFor(property) {
+  const file = byId(`report-file-${property}`).files[0];
+  if (file) {
+    return { name: file.name, data: await base64Of(file) };
+  }
+  const text = byId(`report-text-${property}`).value;
+  return text.trim() ? { name: "", data: await base64Of(new Blob([text])) } : null;
+}
+
+// A file's bytes as base64 text, so JSON can carry them.
+function base64Of(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result.split(",")[1]);  // the result is "data:<type>;base64,<bytes>"
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(blob);
+  });
+}
+
+// For each property whose report was read: show what the report gave, clear its file and text (so reading the
+// other property's report later does not read this one again over the member's changes), and fill in its inputs.
+// An input the report lacks is left empty, with its hint saying what to enter. Switch to comparison mode when
+// Property B was read, so the deltas show.
+function applyReports(answer) {
+  for (const property of PROPERTIES) {
+    const reading = answer[property];
+    if (!reading) {
+      continue;  // no report chosen for this property this time: leave it as it is
+    }
+    byId(`report-summary-${property}`).replaceChildren(...reading.summary.map(listItem));
+    byId(`report-file-${property}`).value = "";
+    byId(`report-text-${property}`).value = "";
+    if (!reading.inputs) {
+      continue;  // the report could not be read: keep what is typed
+    }
+    for (const field of INPUT_FIELDS) {
+      const text = reading.inputs[field] || "";
+      state.inputs[property][field] = text;
+      byId(`input-${property}-${field}`).value = text;
+    }
+    showSource(property, reading.name);
+  }
+  if (answer.B && answer.B.inputs) {
+    switchMode("comparison");  // also asks for the evaluation
+  } else {
+    requestEvaluation();
+  }
+}
+
+// Show, beside a property's column heading, the name of the report its numbers came from ("" for none).
+function showSource(property, name) {
+  const source = byId(`source-${property}`);
+  source.textContent = name;
+  source.title = name;
+}
+
+function listItem(text) {
+  const item = document.createElement("li");
+  item.textContent = text;
+  return item;
+}
+
+function showReportProblem(text) {
+  const problem = byId("report-problem");
+  problem.textContent = text;
+  problem.hidden = false;
 }
 
 loadText();
